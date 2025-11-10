@@ -25,3 +25,17 @@ replay_pid*
 
 # Kotlin Gradle plugin data, see https://kotlinlang.org/docs/whatsnew20.html#new-directory-for-kotlin-data-in-gradle-projects
 .kotlin/
+
+## Ktor specific ignores
+*.iml
+.gradle
+build
+captures
+.externalNativeBuild
+.cxx
+local.properties
+xcuserdata
+
+## IDE files and local files
+.idea
+.DS_Store
