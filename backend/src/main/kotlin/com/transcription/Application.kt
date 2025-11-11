@@ -1,5 +1,7 @@
 package com.transcription
 
+import com.transcription.infrastructure.db.configureDatabases
+import com.transcription.presentation.routes.configureRouting
 import io.ktor.server.application.*
 
 fun main(args: Array<String>) {
@@ -7,5 +9,6 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
+    configureDatabases()
     configureRouting()
 }
