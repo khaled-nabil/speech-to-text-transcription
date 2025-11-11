@@ -39,3 +39,7 @@ xcuserdata
 ## IDE files and local files
 .idea
 .DS_Store
+
+# Environment variables with secrets
+.env
+/tmp
