@@ -15,6 +15,7 @@ import (
 	"transcription-service/internal/config"
 	"transcription-service/internal/router"
 	"transcription-service/pkg/minio"
+	"transcription-service/usecase/transcription"
 )
 
 // Injectors from Wire.go:
@@ -22,7 +23,17 @@ import (
 func InitializeServer() (*Server, error) {
 	engine := NewGinEngine()
 	controller := healthcontroller.New()
-	routerRouter := router.New(engine, controller)
+	configConfig, err := config.New()
+	if err != nil {
+		return nil, err
+	}
+	storage, err := minio.New(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	useCase := transcription.New(storage, configConfig)
+	transcribercontrollerController := transcribercontroller.New(useCase)
+	routerRouter := router.New(engine, controller, transcribercontrollerController)
 	server := New(engine, routerRouter)
 	return server, nil
 }
@@ -37,5 +48,5 @@ func NewGinEngine() *gin.Engine {
 
 var ProviderSet = wire.NewSet(
 	NewGinEngine,
-	New, router.New, healthcontroller.New, transcribercontroller.New, minio.New, config.New,
+	New, transcription.New, healthcontroller.New, transcribercontroller.New, router.New, minio.New, config.New,
 )

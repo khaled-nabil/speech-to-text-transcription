@@ -10,6 +10,7 @@ import (
 	"transcription-service/internal/config"
 	"transcription-service/internal/router"
 	"transcription-service/pkg/minio"
+	"transcription-service/usecase/transcription"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
@@ -24,9 +25,10 @@ func NewGinEngine() *gin.Engine {
 var ProviderSet = wire.NewSet(
 	NewGinEngine,
 	New,
-	router.New,
+	transcription.New,
 	healthcontroller.New,
 	transcribercontroller.New,
+	router.New,
 	minio.New,
 	config.New,
 )
