@@ -2,7 +2,7 @@ package server
 
 import (
 	"fmt"
-	"transcription-service/router"
+	"transcription-service/internal/router"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,7 +28,7 @@ func (s *Server) Start() error {
 
 	s.router.Route()
 
-	err = s.engine.Run(":8080")
+	err = s.engine.Run(":3000")
 	if err != nil {
 		return fmt.Errorf("failed to start server: %w", err)
 	}
