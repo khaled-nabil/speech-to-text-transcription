@@ -11,7 +11,10 @@ import (
 	"github.com/google/wire"
 	"os"
 	"transcription-service/controller/healthcontroller"
-	"transcription-service/router"
+	"transcription-service/controller/transcribercontroller"
+	"transcription-service/internal/config"
+	"transcription-service/internal/router"
+	"transcription-service/pkg/minio"
 )
 
 // Injectors from Wire.go:
@@ -34,5 +37,5 @@ func NewGinEngine() *gin.Engine {
 
 var ProviderSet = wire.NewSet(
 	NewGinEngine,
-	New, router.New, healthcontroller.New,
+	New, router.New, healthcontroller.New, transcribercontroller.New, minio.New, config.New,
 )

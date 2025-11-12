@@ -6,7 +6,10 @@ package server
 import (
 	"os"
 	"transcription-service/controller/healthcontroller"
-	"transcription-service/router"
+	"transcription-service/controller/transcribercontroller"
+	"transcription-service/internal/config"
+	"transcription-service/internal/router"
+	"transcription-service/pkg/minio"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
@@ -23,6 +26,9 @@ var ProviderSet = wire.NewSet(
 	New,
 	router.New,
 	healthcontroller.New,
+	transcribercontroller.New,
+	minio.New,
+	config.New,
 )
 
 func InitializeServer() (*Server, error) {

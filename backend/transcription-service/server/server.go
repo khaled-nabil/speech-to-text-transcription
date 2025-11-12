@@ -2,7 +2,7 @@ package server
 
 import (
 	"fmt"
-	"transcription-service/router"
+	"transcription-service/internal/router"
 
 	"github.com/gin-gonic/gin"
 )
