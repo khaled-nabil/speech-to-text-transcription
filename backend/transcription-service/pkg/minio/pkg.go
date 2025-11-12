@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"log"
 	"transcription-service/internal/config"
 
 	"github.com/minio/minio-go/v7"
@@ -15,15 +16,32 @@ type Storage struct {
 	conf   *config.MinIOConfig
 }
 
-func New(conf *config.MinIOConfig) (*Storage, error) {
-	minioClient, err := minio.New(conf.Endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(conf.AccessKeyID, conf.SecretAccessKey, ""),
-		Secure: conf.UseSSL,
+func New(c *config.Config) (*Storage, error) {
+	minioConfig := c.MinIO
+	minioClient, err := minio.New(minioConfig.Endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(minioConfig.AccessKeyID, minioConfig.SecretAccessKey, ""),
+		Secure: minioConfig.UseSSL,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &Storage{client: minioClient, conf: conf}, nil
+
+	// Check if the bucket exists, create if not
+	ctx := context.Background()
+	exists, err := minioClient.BucketExists(ctx, minioConfig.BucketName)
+	if err != nil {
+		log.Printf("Error checking if bucket %s exists: %s\n", minioConfig.BucketName, err)
+		return nil, err
+	}
+
+	if !exists {
+		err = minioClient.MakeBucket(ctx, minioConfig.BucketName, minio.MakeBucketOptions{})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &Storage{client: minioClient, conf: &minioConfig}, nil
 }
 
 func (s *Storage) StoreFile(path string, data []byte) error {
@@ -45,7 +63,12 @@ func (s *Storage) GetFile(path string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer object.Close()
+	defer func(object *minio.Object) {
+		err = object.Close()
+		if err != nil {
+			log.Printf("Error closing object: %v", err)
+		}
+	}(object)
 
 	data, err := io.ReadAll(object)
 	if err != nil {
