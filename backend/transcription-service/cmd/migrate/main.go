@@ -36,11 +36,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create migration instance: %v", err)
 	}
-	defer func() {
-		if _, err = m.Close(); err != nil {
-			log.Printf("Error closing migration instance: %v", err)
-		}
-	}()
+	if sErr, err := m.Close(); err != nil {
+		log.Printf("Error closing migration instance: %v", err)
+	} else if sErr != nil {
+		log.Printf("Migration close error: %v", sErr)
+	}
 
 	err = m.Up()
 	if err != nil {

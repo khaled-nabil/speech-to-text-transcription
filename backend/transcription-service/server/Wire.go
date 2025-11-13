@@ -28,7 +28,7 @@ func NewGinEngine() *gin.Engine {
 
 var ProviderSet = wire.NewSet(
 	wire.Bind(new(persistance.Storage), new(*minio.Storage)),
-	wire.Bind(new(transcriber.Transcriber), new(*faster_whisper.Client)),
+	wire.Bind(new(transcriber.Transcriber), new(*fasterwhisper.Client)),
 	NewGinEngine,
 	New,
 	transcription.New,
@@ -36,7 +36,7 @@ var ProviderSet = wire.NewSet(
 	transcribercontroller.New,
 	router.New,
 	minio.New,
-	faster_whisper.New,
+	fasterwhisper.New,
 	postgres.New,
 	config.New)
 

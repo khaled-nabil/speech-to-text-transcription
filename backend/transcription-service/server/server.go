@@ -39,7 +39,7 @@ func (s *Server) Start() error {
 	s.router.Route()
 
 	port, exist := os.LookupEnv("APP_PORT")
-	if exist == false {
+	if !exist {
 		log.Printf("APP_PORT not set, defaulting to 3000")
 		port = "3000"
 	}
