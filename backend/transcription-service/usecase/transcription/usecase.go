@@ -140,7 +140,7 @@ func (u *useCase) GetAudio(userID string, fileName string) ([]byte, string, erro
 		return nil, "", err
 	}
 
-	mime, err := getMIMEFromExtension(strings.ToLower(path.Ext(fileName)))
+	mime, err := getMIMEFromExtension(strings.ToLower(path.Ext(fileName)[1:]))
 	if err != nil {
 		return nil, "", fmt.Errorf("unable to determine file MIME type")
 	}
@@ -185,8 +185,7 @@ func getExtensionFromMIME(m string) (string, error) {
 	}
 }
 
-func getMIMEFromExtension(name string) (string, error) {
-	ext := strings.ToLower(path.Ext(name))
+func getMIMEFromExtension(ext string) (string, error) {
 	switch ext {
 	case "mp3":
 		return "audio/mpeg", nil
