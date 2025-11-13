@@ -15,6 +15,7 @@ import (
 
 type Client struct {
 	baseURL    string
+	model      string
 	httpClient *http.Client
 }
 
@@ -41,13 +42,14 @@ func New(c *config.Config) (*Client, error) {
 
 	return &Client{
 		baseURL:    baseURL,
+		model:      c.FasterWhisper.Model,
 		httpClient: httpC,
 	}, nil
 }
 
 // Transcribe sends an audio file to faster-whisper and returns the transcription
 func (c *Client) Transcribe(req transcriber.TranscriptionRequest) (*transcriber.TranscriptionResponse, error) {
-	body, contentType, err := getRequestBody(req)
+	body, contentType, err := c.getRequestBody(req)
 
 	resp, err := c.httpClient.Post(fmt.Sprint(c.baseURL, ApiPrefix, TranscriptionEndpoint), contentType, body)
 	if err != nil {
@@ -82,11 +84,11 @@ func (c *Client) Transcribe(req transcriber.TranscriptionRequest) (*transcriber.
 	return &transcriptionResp, nil
 }
 
-func getRequestBody(req transcriber.TranscriptionRequest) (*bytes.Buffer, string, error) {
+func (c *Client) getRequestBody(req transcriber.TranscriptionRequest) (*bytes.Buffer, string, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	part, err := writer.CreateFormFile("audio_file", req.FileName)
+	part, err := writer.CreateFormFile("file", req.FileName)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to create form file: %w", err)
 	}
@@ -110,6 +112,10 @@ func getRequestBody(req transcriber.TranscriptionRequest) (*bytes.Buffer, string
 		if err = writer.WriteField("prompt", req.Prompt); err != nil {
 			return nil, "", fmt.Errorf("failed to write prompt: %w", err)
 		}
+	}
+
+	if err = writer.WriteField("model", c.model); err != nil {
+		return nil, "", fmt.Errorf("failed to write model: %w", err)
 	}
 
 	if err = writer.Close(); err != nil {
