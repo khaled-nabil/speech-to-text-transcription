@@ -3,6 +3,7 @@ name: Lint and Run tests
 on:
   pull_request:
     branches: ['master']
+  workflow_dispatch:
 
 jobs:
   lint-and-test:
