@@ -1,6 +1,7 @@
 package transcription
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -9,8 +10,10 @@ import (
 	"path"
 	"slices"
 	"strings"
+	"time"
 	"transcription-service/domain/persistance"
 	"transcription-service/domain/transcriber"
+	"transcription-service/domain/transcriptionentity"
 	"transcription-service/internal/config"
 
 	"github.com/google/uuid"
@@ -18,13 +21,15 @@ import (
 
 type useCase struct {
 	storage     persistance.Storage
+	repo        persistance.TranscriptionRepository
 	transcriber transcriber.Transcriber
 	config      *config.StorageConfig
 }
 
-func New(storage persistance.Storage, transcriber transcriber.Transcriber, config *config.Config) UseCase {
+func New(storage persistance.Storage, repo persistance.TranscriptionRepository, transcriber transcriber.Transcriber, config *config.Config) UseCase {
 	return &useCase{
 		storage:     storage,
+		repo:        repo,
 		transcriber: transcriber,
 		config:      &config.Storage,
 	}
@@ -91,6 +96,17 @@ func (u *useCase) GetTranscription(userID string, fileHeader *multipart.FileHead
 		return "", "", err
 	}
 
+	transcriptionEntity := &transcriptionentity.Transcription{
+		ID:             uuid.New().String(),
+		UserID:         userID,
+		FileName:       fileName,
+		UploadDate:     time.Now(),
+		TranscriptText: resp.Text,
+	}
+	if err = u.repo.Save(context.Background(), transcriptionEntity); err != nil {
+		return "", "", fmt.Errorf("failed to save transcription: %w", err)
+	}
+
 	return fileName, resp.Text, nil
 }
 
@@ -111,6 +127,22 @@ func (u *useCase) GetAudio(userID string, fileName string) ([]byte, string, erro
 	}
 
 	return data, mime, nil
+}
+
+func (u *useCase) GetAllUserTranscriptions(userID string) ([]*transcriptionentity.Transcription, error) {
+	if userID == "" {
+		return nil, errors.New("missing userID")
+	}
+
+	return u.repo.GetAllByUserID(context.Background(), userID)
+}
+
+func (u *useCase) GetTranscriptionByID(id string) (*transcriptionentity.Transcription, error) {
+	if id == "" {
+		return nil, errors.New("missing transcription ID")
+	}
+
+	return u.repo.GetByID(context.Background(), id)
 }
 
 func maxFileSizeFromMBytes(mbytes int) int64 {
