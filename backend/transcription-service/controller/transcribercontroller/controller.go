@@ -25,13 +25,16 @@ func (ctr *Controller) UploadAudio(c *gin.Context) {
 		return
 	}
 
-	fileName, err := ctr.useCase.UploadAudio(userID, fileHeader)
+	f, t, err := ctr.useCase.GetTranscription(userID, fileHeader)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"filename": fileName})
+	c.JSON(http.StatusCreated, TranscriptionResponseDTO{
+		Text:     t,
+		FileName: f,
+	})
 }
 
 func (ctr *Controller) GetAudio(c *gin.Context) {
