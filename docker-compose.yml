@@ -7,18 +7,16 @@ services:
       - "3000:3000"
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_started
+      faster-whisper:
+        condition: service_started
+      minio:
+        condition: service_started
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:3000/api/v1/health" ]
       timeout: 5s
       interval: 10m
       retries: 3
-    environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: ${DB_NAME:-transcription_service_dev}
-      DB_USER: ${DB_USER:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-postgres}
 
   db:
     image: postgres:17.6
@@ -26,10 +24,6 @@ services:
       - backend/transcription-service/.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: ${DB_NAME:-transcription_service_dev}
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
     ports:
       - "5432:5432"
     healthcheck:
@@ -44,10 +38,6 @@ services:
     ports:
       - "9000:9000"  # MinIO API/Client port
       - "9001:9001"  # MinIO Console/Web UI port
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio_admin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio_admin}
-      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME:-transcription_service_dev}
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
@@ -57,10 +47,40 @@ services:
       timeout: 20s
       retries: 3
     restart: always
-    depends_on:
-      db:
-        condition: service_healthy
+
+  faster-whisper:
+    container_name: speaches
+    build:
+      dockerfile: Dockerfile
+      context: .
+      platforms:
+        - linux/amd64
+        - linux/arm64
+      args:
+        BASE_IMAGE: ubuntu:24.04
+    restart: unless-stopped
+    ports:
+      - "4000:8000"
+    develop:
+      watch:
+        - action: rebuild
+          path: ./uv.lock
+        - action: sync+restart
+          path: ./src
+          target: /home/ubuntu/speaches/src
+    env_file:
+      - backend/transcription-service/.env
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://0.0.0.0:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    image: ghcr.io/speaches-ai/speaches:latest-cpu
+    volumes:
+      - faster_whisper_data:/home/ubuntu/.cache/huggingface/hub
 
 volumes:
   postgres_data:
   minio_data:
+  faster_whisper_data:
