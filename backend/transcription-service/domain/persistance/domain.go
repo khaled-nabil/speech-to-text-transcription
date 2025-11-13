@@ -6,10 +6,4 @@ type (
 		GetFile(path string) ([]byte, error)
 		DeleteFile(path string) error
 	}
-
-	File struct {
-		Data []byte
-		Name string
-		User string
-	}
 )
