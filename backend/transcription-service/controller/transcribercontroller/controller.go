@@ -25,16 +25,15 @@ func (ctr *Controller) UploadAudio(c *gin.Context) {
 		return
 	}
 
-	f, t, err := ctr.useCase.GetTranscription(userID, fileHeader)
+	id, err := ctr.useCase.UploadAudio(userID, fileHeader)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, TranscriptionResponseDTO{
-		Text:     t,
-		FileName: f,
-		Status:   SUCCESS,
+	c.JSON(http.StatusAccepted, TranscriptionResponseDTO{
+		ID:     id,
+		Status: PENDING,
 	})
 }
 
@@ -70,6 +69,7 @@ func (ctr *Controller) GetAllUserTranscriptions(c *gin.Context) {
 			ID:             t.ID,
 			UploadDate:     t.UploadDate,
 			TranscriptText: t.TranscriptText,
+			Status:         STATUS(t.Status),
 		})
 	}
 
@@ -93,5 +93,6 @@ func (ctr *Controller) GetTranscriptionByID(c *gin.Context) {
 		ID:             t.ID,
 		UploadDate:     t.UploadDate,
 		TranscriptText: t.TranscriptText,
+		Status:         STATUS(t.Status),
 	})
 }
