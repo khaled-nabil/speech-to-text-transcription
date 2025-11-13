@@ -10,9 +10,9 @@
 *.coverprofile
 
 # Directories
-/bin/
-/build/
-/dist/
+bin/
+build/
+dist/
 
 # Go workspace file
 go.work
