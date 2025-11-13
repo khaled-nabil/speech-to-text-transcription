@@ -7,8 +7,11 @@ import (
 	"os"
 	"transcription-service/controller/healthcontroller"
 	"transcription-service/controller/transcribercontroller"
+	"transcription-service/domain/persistance"
+	"transcription-service/domain/transcriber"
 	"transcription-service/internal/config"
 	"transcription-service/internal/router"
+	"transcription-service/pkg/faster-whisper"
 	"transcription-service/pkg/minio"
 	"transcription-service/usecase/transcription"
 
@@ -23,6 +26,8 @@ func NewGinEngine() *gin.Engine {
 }
 
 var ProviderSet = wire.NewSet(
+	wire.Bind(new(persistance.Storage), new(*minio.Storage)),
+	wire.Bind(new(transcriber.Transcriber), new(*faster_whisper.Client)),
 	NewGinEngine,
 	New,
 	transcription.New,
@@ -30,8 +35,8 @@ var ProviderSet = wire.NewSet(
 	transcribercontroller.New,
 	router.New,
 	minio.New,
-	config.New,
-)
+	faster_whisper.New,
+	config.New)
 
 func InitializeServer() (*Server, error) {
 	wire.Build(ProviderSet)

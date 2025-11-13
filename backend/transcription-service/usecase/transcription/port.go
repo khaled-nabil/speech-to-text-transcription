@@ -5,6 +5,6 @@ import (
 )
 
 type UseCase interface {
-	UploadAudio(userID string, fileHeader *multipart.FileHeader) (string, error)
-	GetAudio(userID string, fileName string) ([]byte, string, error)
+	GetTranscription(userID string, fileHeader *multipart.FileHeader) (filename string, transcription string, err error)
+	GetAudio(userID string, fileName string) (file []byte, contentType string, err error)
 }

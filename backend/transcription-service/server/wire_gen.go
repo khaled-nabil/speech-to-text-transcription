@@ -12,8 +12,11 @@ import (
 	"os"
 	"transcription-service/controller/healthcontroller"
 	"transcription-service/controller/transcribercontroller"
+	"transcription-service/domain/persistance"
+	"transcription-service/domain/transcriber"
 	"transcription-service/internal/config"
 	"transcription-service/internal/router"
+	"transcription-service/pkg/faster-whisper"
 	"transcription-service/pkg/minio"
 	"transcription-service/usecase/transcription"
 )
@@ -31,7 +34,11 @@ func InitializeServer() (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	useCase := transcription.New(storage, configConfig)
+	client, err := faster_whisper.New(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	useCase := transcription.New(storage, client, configConfig)
 	transcribercontrollerController := transcribercontroller.New(useCase)
 	routerRouter := router.New(engine, controller, transcribercontrollerController)
 	server := New(engine, routerRouter)
@@ -46,7 +53,6 @@ func NewGinEngine() *gin.Engine {
 	return gin.New()
 }
 
-var ProviderSet = wire.NewSet(
-	NewGinEngine,
-	New, transcription.New, healthcontroller.New, transcribercontroller.New, router.New, minio.New, config.New,
+var ProviderSet = wire.NewSet(wire.Bind(new(persistance.Storage), new(*minio.Storage)), wire.Bind(new(transcriber.Transcriber), new(*faster_whisper.Client)), NewGinEngine,
+	New, transcription.New, healthcontroller.New, transcribercontroller.New, router.New, minio.New, faster_whisper.New, config.New,
 )

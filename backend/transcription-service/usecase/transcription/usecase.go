@@ -9,31 +9,39 @@ import (
 	"path"
 	"slices"
 	"strings"
+	"transcription-service/domain/persistance"
+	"transcription-service/domain/transcriber"
 	"transcription-service/internal/config"
-
-	"transcription-service/pkg/minio"
 
 	"github.com/google/uuid"
 )
 
 type useCase struct {
-	storage *minio.Storage
-	config  *config.StorageConfig
+	storage     persistance.Storage
+	transcriber transcriber.Transcriber
+	config      *config.StorageConfig
 }
 
-func New(storage *minio.Storage, config *config.Config) UseCase {
-	return &useCase{storage: storage, config: &config.Storage}
+func New(storage persistance.Storage, transcriber transcriber.Transcriber, config *config.Config) UseCase {
+	return &useCase{
+		storage:     storage,
+		transcriber: transcriber,
+		config:      &config.Storage,
+	}
 }
 
-func (u *useCase) UploadAudio(userID string, fileHeader *multipart.FileHeader) (string, error) {
+func (u *useCase) GetTranscription(userID string, fileHeader *multipart.FileHeader) (string, string, error) {
 	if userID == "" {
-		return "", errors.New("missing userID")
+		return "", "", errors.New("missing userID")
 	}
 	if fileHeader == nil {
-		return "", errors.New("missing file")
+		return "", "", errors.New("missing file")
 	}
-	if fileHeader.Size > maxFileSizeFromMBytes(u.config.MaxFileSize) {
-		return "", errors.New("file too large (>5MB)")
+
+	maxFileSize := maxFileSizeFromMBytes(u.config.MaxFileSize)
+
+	if fileHeader.Size > maxFileSize {
+		return "", "", fmt.Errorf("file too large (>%dMB)", maxFileSize)
 	}
 
 	var fileExtension string
@@ -46,12 +54,12 @@ func (u *useCase) UploadAudio(userID string, fileHeader *multipart.FileHeader) (
 	}
 
 	if (slices.Contains(u.config.AllowedExt, fileExtension)) == false {
-		return "", errors.New(fmt.Sprintf("file type %s not allowed", fileExtension))
+		return "", "", errors.New(fmt.Sprintf("file type %s not allowed", fileExtension))
 	}
 
 	f, err := fileHeader.Open()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	defer func(f multipart.File) {
 		err = f.Close()
@@ -60,21 +68,30 @@ func (u *useCase) UploadAudio(userID string, fileHeader *multipart.FileHeader) (
 		}
 	}(f)
 
-	data, err := io.ReadAll(io.LimitReader(f, maxFileSizeFromMBytes(u.config.MaxFileSize)+1))
+	data, err := io.ReadAll(io.LimitReader(f, maxFileSize+1))
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	if int64(len(data)) > maxFileSizeFromMBytes(u.config.MaxFileSize) {
-		return "", errors.New(fmt.Sprintf("file too large (>%dMB)", maxFileSizeFromMBytes(u.config.MaxFileSize)))
+	if int64(len(data)) > maxFileSize {
+		return "", "", errors.New(fmt.Sprintf("file too large (>%dMB)", maxFileSize))
 	}
 
-	fileName := uuid.New().String()
-	objectPath := fmt.Sprintf("%s/%s.%s", userID, fileName, fileExtension)
+	fileName := fmt.Sprintf("%s.%s", uuid.New().String(), fileExtension)
+	objectPath := fmt.Sprintf("%s/%s", userID, fileName)
 
 	if err = u.storage.StoreFile(objectPath, data); err != nil {
-		return "", err
+		return "", "", err
 	}
-	return fileName, nil
+
+	resp, err := u.transcriber.Transcribe(transcriber.TranscriptionRequest{
+		FileName:  fileName,
+		AudioFile: data,
+	})
+	if err != nil {
+		return "", "", err
+	}
+
+	return fileName, resp.Text, nil
 }
 
 func (u *useCase) GetAudio(userID string, fileName string) ([]byte, string, error) {
@@ -88,12 +105,12 @@ func (u *useCase) GetAudio(userID string, fileName string) ([]byte, string, erro
 		return nil, "", err
 	}
 
-	ext, err := getMIMEFromExtension(strings.ToLower(path.Ext(fileName)))
+	mime, err := getMIMEFromExtension(strings.ToLower(path.Ext(fileName)))
 	if err != nil {
 		return nil, "", errors.New("unable to determine file MIME type")
 	}
 
-	return data, ext, nil
+	return data, mime, nil
 }
 
 func maxFileSizeFromMBytes(mbytes int) int64 {

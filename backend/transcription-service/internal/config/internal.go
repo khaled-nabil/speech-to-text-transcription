@@ -7,24 +7,33 @@ import (
 	"strings"
 )
 
-type MinIOConfig struct {
-	Endpoint        string
-	AccessKeyID     string
-	SecretAccessKey string
-	UseSSL          bool
-	BucketName      string
-}
+type (
+	MinIOConfig struct {
+		Endpoint        string
+		AccessKeyID     string
+		SecretAccessKey string
+		UseSSL          bool
+		BucketName      string
+	}
 
-type StorageConfig struct {
-	MaxFileSize int
-	AllowedExt  []string
-}
+	StorageConfig struct {
+		MaxFileSize int
+		AllowedExt  []string
+	}
 
-type Config struct {
-	Env     string
-	MinIO   MinIOConfig
-	Storage StorageConfig
-}
+	FasterWhisper struct {
+		Endpoint string
+		Port     string
+		Model    string
+	}
+
+	Config struct {
+		Env           string
+		MinIO         MinIOConfig
+		Storage       StorageConfig
+		FasterWhisper FasterWhisper
+	}
+)
 
 func New() (*Config, error) {
 	c := &Config{
@@ -39,6 +48,11 @@ func New() (*Config, error) {
 		Storage: StorageConfig{
 			MaxFileSize: getEnvIntegerFatal("MAX_MB_FILE_SIZE"),
 			AllowedExt:  getEnvListStringsFatal("ALLOWED_FILE_TYPES"),
+		},
+		FasterWhisper: FasterWhisper{
+			Endpoint: getEnvFatal("FASTER_WHISPER_ENDPOINT"),
+			Port:     getEnvFatal("FASTER_WHISPER_PORT"),
+			Model:    getEnvFatal("FASTER_WHIPSER_MODEL"),
 		},
 	}
 	if err := c.Validate(); err != nil {
