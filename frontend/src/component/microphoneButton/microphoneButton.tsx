@@ -1,6 +1,8 @@
 import { IconButton } from '@mui/material'
 import MicIcon from '@mui/icons-material/Mic'
 
+import style from './microphoneButton.module.scss'
+
 interface MicrophoneButtonProps {
 	onClick: () => void
 }
@@ -9,15 +11,7 @@ const MicrophoneButton = ({ onClick }: MicrophoneButtonProps) => {
 	return (
 		<IconButton
 			onClick={onClick}
-			sx={{
-				width: 80,
-				height: 80,
-				backgroundColor: 'primary.main',
-				color: 'white',
-				'&:hover': {
-					backgroundColor: 'primary.dark',
-				},
-			}}
+			className={style.button}
 		>
 			<MicIcon sx={{ fontSize: 40 }} />
 		</IconButton>

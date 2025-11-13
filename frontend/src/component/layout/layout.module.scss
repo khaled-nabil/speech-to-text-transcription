@@ -2,7 +2,9 @@
 @use '../../presentation/theme/spacings.module' as spacings;
 
 .page {
-  background-color: colors.$space-grey-200;
+  background: colors.$space-grey-300;
+  background: -webkit-linear-gradient(45deg, colors.$space-grey-100, colors.$space-grey-300);
+  background: linear-gradient(45deg, colors.$space-grey-100, colors.$space-grey-300);
   padding: spacings.$spacing-md;
   height: 100%;
   overflow: auto;
