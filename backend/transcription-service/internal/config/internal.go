@@ -1,7 +1,7 @@
 package config
 
 import (
-	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -129,7 +129,7 @@ func getEnvListStringsFatal(key string) []string {
 
 func (c *Config) Validate() error {
 	if c.MinIO.Endpoint == "" {
-		return errors.New("minio endpoint required")
+		return fmt.Errorf("minio endpoint required")
 	}
 	return nil
 }

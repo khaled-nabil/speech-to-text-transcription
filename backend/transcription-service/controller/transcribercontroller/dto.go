@@ -6,15 +6,15 @@ type (
 	STATUS string
 
 	TranscriptionResponseDTO struct {
-		Text     string `json:"text"`
-		FileName string `json:"fileName"`
-		Status   STATUS `json:"status"`
+		ID     string `json:"id"`
+		Status STATUS `json:"status"`
 	}
 
 	TranscriptionItemDTO struct {
 		ID             string    `json:"id"`
 		UploadDate     time.Time `json:"uploadDate"`
 		TranscriptText string    `json:"transcriptText"`
+		Status         STATUS    `json:"status"`
 	}
 )
 

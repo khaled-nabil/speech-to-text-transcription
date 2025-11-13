@@ -1,7 +1,6 @@
 package persistance
 
 import (
-	"context"
 	"transcription-service/domain/transcriptionentity"
 )
 
@@ -13,9 +12,10 @@ type (
 	}
 
 	TranscriptionRepository interface {
-		Save(ctx context.Context, transcription *transcriptionentity.Transcription) error
-		GetByID(ctx context.Context, id string) (*transcriptionentity.Transcription, error)
-		GetAllByUserID(ctx context.Context, userID string) ([]*transcriptionentity.Transcription, error)
+		Save(transcription *transcriptionentity.Transcription) error
+		UpdateWithTranscription(transcription *transcriptionentity.Transcription) error
+		GetByID(id string) (*transcriptionentity.Transcription, error)
+		GetAllByUserID(userID string) ([]*transcriptionentity.Transcription, error)
 		Close() error
 	}
 )
