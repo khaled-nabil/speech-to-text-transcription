@@ -1,0 +1,26 @@
+@use '../../presentation/theme/colors.module' as colors;
+@use '../../presentation/theme/spacings.module' as spacings;
+
+.page {
+  background-color: colors.$space-grey-200;
+  padding: spacings.$spacing-md;
+  height: 100%;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+
+  .wrapper {
+    display: flex;
+    flex: 1;
+
+    .main {
+      display: flex;
+      box-sizing: border-box;
+      background-color: colors.$space-grey-100;
+      flex: 1;
+      max-height: 100%;
+      overflow: auto;
+      border-radius: 1rem;
+    }
+  }
+}
