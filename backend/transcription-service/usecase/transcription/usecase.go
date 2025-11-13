@@ -1,7 +1,6 @@
 package transcription
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -35,18 +34,18 @@ func New(storage persistance.Storage, repo persistance.TranscriptionRepository, 
 	}
 }
 
-func (u *useCase) GetTranscription(userID string, fileHeader *multipart.FileHeader) (string, string, error) {
+func (u *useCase) UploadAudio(userID string, fileHeader *multipart.FileHeader) (string, error) {
 	if userID == "" {
-		return "", "", errors.New("missing userID")
+		return "", errors.New("missing userID")
 	}
 	if fileHeader == nil {
-		return "", "", errors.New("missing file")
+		return "", errors.New("missing file")
 	}
 
 	maxFileSize := maxFileSizeFromMBytes(u.config.MaxFileSize)
 
 	if fileHeader.Size > maxFileSize {
-		return "", "", fmt.Errorf("file too large (>%dMB)", maxFileSize)
+		return "", fmt.Errorf("file too large (>%dMB)", maxFileSize)
 	}
 
 	var fileExtension string
@@ -59,12 +58,12 @@ func (u *useCase) GetTranscription(userID string, fileHeader *multipart.FileHead
 	}
 
 	if (slices.Contains(u.config.AllowedExt, fileExtension)) == false {
-		return "", "", errors.New(fmt.Sprintf("file type %s not allowed", fileExtension))
+		return "", errors.New(fmt.Sprintf("file type %s not allowed", fileExtension))
 	}
 
 	f, err := fileHeader.Open()
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 	defer func(f multipart.File) {
 		err = f.Close()
@@ -75,25 +74,17 @@ func (u *useCase) GetTranscription(userID string, fileHeader *multipart.FileHead
 
 	data, err := io.ReadAll(io.LimitReader(f, maxFileSize+1))
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 	if int64(len(data)) > maxFileSize {
-		return "", "", errors.New(fmt.Sprintf("file too large (>%dMB)", maxFileSize))
+		return "", errors.New(fmt.Sprintf("file too large (>%dMB)", maxFileSize))
 	}
 
 	fileName := fmt.Sprintf("%s.%s", uuid.New().String(), fileExtension)
 	objectPath := fmt.Sprintf("%s/%s", userID, fileName)
 
 	if err = u.storage.StoreFile(objectPath, data); err != nil {
-		return "", "", err
-	}
-
-	resp, err := u.transcriber.Transcribe(transcriber.TranscriptionRequest{
-		FileName:  fileName,
-		AudioFile: data,
-	})
-	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
 	transcriptionEntity := &transcriptionentity.Transcription{
@@ -101,13 +92,42 @@ func (u *useCase) GetTranscription(userID string, fileHeader *multipart.FileHead
 		UserID:         userID,
 		FileName:       fileName,
 		UploadDate:     time.Now(),
-		TranscriptText: resp.Text,
+		TranscriptText: "",
+		Status:         transcriptionentity.StatusPending,
 	}
-	if err = u.repo.Save(context.Background(), transcriptionEntity); err != nil {
-		return "", "", fmt.Errorf("failed to save transcription: %w", err)
+	if err = u.repo.Save(transcriptionEntity); err != nil {
+		return "", fmt.Errorf("failed to save transcription: %w", err)
 	}
 
-	return fileName, resp.Text, nil
+	go u.processTranscription(transcriptionEntity.ID, fileName, data)
+
+	return transcriptionEntity.ID, nil
+}
+
+func (u *useCase) processTranscription(id string, fileName string, data []byte) {
+	resp, err := u.transcriber.Transcribe(transcriber.TranscriptionRequest{
+		FileName:  fileName,
+		AudioFile: data,
+	})
+
+	transcription, getErr := u.repo.GetByID(id)
+	if getErr != nil {
+		log.Printf("Error getting transcription %s: %v", id, getErr)
+		return
+	}
+
+	if err != nil {
+		log.Printf("Error transcribing audio for %s: %v", id, err)
+		transcription.Status = transcriptionentity.StatusError
+		transcription.TranscriptText = fmt.Sprintf("Transcription failed: %v", err)
+	} else {
+		transcription.Status = transcriptionentity.StatusSuccess
+		transcription.TranscriptText = resp.Text
+	}
+
+	if updateErr := u.repo.UpdateWithTranscription(transcription); updateErr != nil {
+		log.Printf("Error updating transcription %s: %v", id, updateErr)
+	}
 }
 
 func (u *useCase) GetAudio(userID string, fileName string) ([]byte, string, error) {
@@ -134,7 +154,7 @@ func (u *useCase) GetAllUserTranscriptions(userID string) ([]*transcriptionentit
 		return nil, errors.New("missing userID")
 	}
 
-	return u.repo.GetAllByUserID(context.Background(), userID)
+	return u.repo.GetAllByUserID(userID)
 }
 
 func (u *useCase) GetTranscriptionByID(id string) (*transcriptionentity.Transcription, error) {
@@ -142,7 +162,7 @@ func (u *useCase) GetTranscriptionByID(id string) (*transcriptionentity.Transcri
 		return nil, errors.New("missing transcription ID")
 	}
 
-	return u.repo.GetByID(context.Background(), id)
+	return u.repo.GetByID(id)
 }
 
 func maxFileSizeFromMBytes(mbytes int) int64 {
