@@ -1,0 +1,30 @@
+name: Lint and Run tests
+
+on:
+  pull_request:
+    branches: ['master']
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'backend/transcription-service/go.mod'
+
+      - name: Install dependencies
+        working-directory: backend/transcription-service
+        run: make deps
+
+      - name: Run linter
+        working-directory: backend/transcription-service
+        run: make lint
+
+      - name: Run tests
+        working-directory: backend/transcription-service
+        run: go test -v ./...
