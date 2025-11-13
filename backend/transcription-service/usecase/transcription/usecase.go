@@ -1,7 +1,6 @@
 package transcription
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -36,10 +35,10 @@ func New(storage persistance.Storage, repo persistance.TranscriptionRepository, 
 
 func (u *useCase) UploadAudio(userID string, fileHeader *multipart.FileHeader) (string, error) {
 	if userID == "" {
-		return "", errors.New("missing userID")
+		return "", fmt.Errorf("missing userID")
 	}
 	if fileHeader == nil {
-		return "", errors.New("missing file")
+		return "", fmt.Errorf("missing file")
 	}
 
 	maxFileSize := maxFileSizeFromMBytes(u.config.MaxFileSize)
@@ -57,8 +56,8 @@ func (u *useCase) UploadAudio(userID string, fileHeader *multipart.FileHeader) (
 		fileExtension = strings.TrimPrefix(path.Ext(fileHeader.Filename), ".")
 	}
 
-	if (slices.Contains(u.config.AllowedExt, fileExtension)) == false {
-		return "", errors.New(fmt.Sprintf("file type %s not allowed", fileExtension))
+	if !(slices.Contains(u.config.AllowedExt, fileExtension)) {
+		return "", fmt.Errorf("file type %s not allowed", fileExtension)
 	}
 
 	f, err := fileHeader.Open()
@@ -77,7 +76,7 @@ func (u *useCase) UploadAudio(userID string, fileHeader *multipart.FileHeader) (
 		return "", err
 	}
 	if int64(len(data)) > maxFileSize {
-		return "", errors.New(fmt.Sprintf("file too large (>%dMB)", maxFileSize))
+		return "", fmt.Errorf("file too large (>%dMB)", maxFileSize)
 	}
 
 	fileName := fmt.Sprintf("%s.%s", uuid.New().String(), fileExtension)
@@ -132,7 +131,7 @@ func (u *useCase) processTranscription(id string, fileName string, data []byte) 
 
 func (u *useCase) GetAudio(userID string, fileName string) ([]byte, string, error) {
 	if userID == "" || fileName == "" {
-		return nil, "", errors.New("missing identifiers")
+		return nil, "", fmt.Errorf("missing identifiers")
 	}
 
 	objectPath := fmt.Sprintf("%s/%s", userID, fileName)
@@ -143,7 +142,7 @@ func (u *useCase) GetAudio(userID string, fileName string) ([]byte, string, erro
 
 	mime, err := getMIMEFromExtension(strings.ToLower(path.Ext(fileName)))
 	if err != nil {
-		return nil, "", errors.New("unable to determine file MIME type")
+		return nil, "", fmt.Errorf("unable to determine file MIME type")
 	}
 
 	return data, mime, nil
@@ -151,7 +150,7 @@ func (u *useCase) GetAudio(userID string, fileName string) ([]byte, string, erro
 
 func (u *useCase) GetAllUserTranscriptions(userID string) ([]*transcriptionentity.Transcription, error) {
 	if userID == "" {
-		return nil, errors.New("missing userID")
+		return nil, fmt.Errorf("missing userID")
 	}
 
 	return u.repo.GetAllByUserID(userID)
@@ -159,7 +158,7 @@ func (u *useCase) GetAllUserTranscriptions(userID string) ([]*transcriptionentit
 
 func (u *useCase) GetTranscriptionByID(id string) (*transcriptionentity.Transcription, error) {
 	if id == "" {
-		return nil, errors.New("missing transcription ID")
+		return nil, fmt.Errorf("missing transcription ID")
 	}
 
 	return u.repo.GetByID(id)

@@ -1,4 +1,4 @@
-package faster_whisper
+package fasterwhisper
 
 import (
 	"bytes"
@@ -20,7 +20,7 @@ type Client struct {
 }
 
 const (
-	ApiPrefix             = "/v1"
+	APIPrefix             = "/v1"
 	DownloadModelEndpoint = "/models"
 	TranscriptionEndpoint = "/audio/transcriptions"
 )
@@ -33,11 +33,17 @@ func New(c *config.Config) (*Client, error) {
 
 	// download model into the faster-whisper server
 	log.Printf("Downloading model %s, this can take a little while..", c.FasterWhisper.Model)
-	_, err := httpC.Post(fmt.Sprint(baseURL, ApiPrefix, DownloadModelEndpoint, c.FasterWhisper.Model), "application/json", nil)
+	resp, err := httpC.Post(fmt.Sprint(baseURL, APIPrefix, DownloadModelEndpoint, c.FasterWhisper.Model), "application/json", nil)
 	if err != nil {
 		// break since the model is required for the transcription service to work
 		panic(fmt.Errorf("failed to download model: %w", err))
 	}
+
+	err = resp.Body.Close()
+	if err != nil {
+		log.Printf("Error closing response body: %v", err)
+	}
+
 	log.Println("Model downloaded successfully - ready to transcribe!")
 
 	return &Client{
@@ -50,18 +56,19 @@ func New(c *config.Config) (*Client, error) {
 // Transcribe sends an audio file to faster-whisper and returns the transcription
 func (c *Client) Transcribe(req transcriber.TranscriptionRequest) (*transcriber.TranscriptionResponse, error) {
 	body, contentType, err := c.getRequestBody(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build request body: %w", err)
+	}
 
-	resp, err := c.httpClient.Post(fmt.Sprint(c.baseURL, ApiPrefix, TranscriptionEndpoint), contentType, body)
+	resp, err := c.httpClient.Post(fmt.Sprint(c.baseURL, APIPrefix, TranscriptionEndpoint), contentType, body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
 
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
-		if err != nil {
-			log.Printf("Error closing response body: %v", err)
-		}
-	}(resp.Body)
+	err = resp.Body.Close()
+	if err != nil {
+		log.Printf("Error closing response body: %v", err)
+	}
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {

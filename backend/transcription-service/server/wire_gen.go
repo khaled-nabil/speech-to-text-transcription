@@ -39,7 +39,7 @@ func InitializeServer() (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	client, err := faster_whisper.New(configConfig)
+	client, err := fasterwhisper.New(configConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +58,6 @@ func NewGinEngine() *gin.Engine {
 	return gin.New()
 }
 
-var ProviderSet = wire.NewSet(wire.Bind(new(persistance.Storage), new(*minio.Storage)), wire.Bind(new(transcriber.Transcriber), new(*faster_whisper.Client)), NewGinEngine,
-	New, transcription.New, healthcontroller.New, transcribercontroller.New, router.New, minio.New, faster_whisper.New, postgres.New, config.New,
+var ProviderSet = wire.NewSet(wire.Bind(new(persistance.Storage), new(*minio.Storage)), wire.Bind(new(transcriber.Transcriber), new(*fasterwhisper.Client)), NewGinEngine,
+	New, transcription.New, healthcontroller.New, transcribercontroller.New, router.New, minio.New, fasterwhisper.New, postgres.New, config.New,
 )
