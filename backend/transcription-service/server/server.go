@@ -44,7 +44,7 @@ func (s *Server) Start() error {
 		port = "3000"
 	}
 	srv := &http.Server{
-		Addr:    port,
+		Addr:    fmt.Sprintf(":%s", port),
 		Handler: s.engine,
 	}
 
