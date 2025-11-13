@@ -42,3 +42,5 @@ env.json
 
 # Environment files
 .env
+/frontend/.vite/deps/_metadata.json
+/frontend/.vite/deps/package.json
