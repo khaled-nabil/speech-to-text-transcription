@@ -26,7 +26,15 @@ func (r *Router) Route() {
 	r.Gin.Group("/api/v1/health").
 		GET("", r.hctrl.Health)
 
-	r.Gin.Group("/api/v1/transcriber").
-		GET(":filename", r.tctrl.GetAudio).
-		POST("", r.tctrl.UploadAudio)
+	transcriber := r.Gin.Group("/api/v1/transcriber")
+	{
+		transcriber.POST("", r.tctrl.UploadAudio)
+		transcriber.GET(":filename", r.tctrl.GetAudio)
+	}
+
+	transcriptions := r.Gin.Group("/api/v1/transcriptions")
+	{
+		transcriptions.GET("", r.tctrl.GetAllUserTranscriptions)
+		transcriptions.GET(":id", r.tctrl.GetTranscriptionByID)
+	}
 }
