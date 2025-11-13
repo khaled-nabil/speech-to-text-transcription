@@ -170,6 +170,8 @@ func maxFileSizeFromMBytes(mbytes int) int64 {
 
 func getExtensionFromMIME(m string) (string, error) {
 	switch m {
+	case "audio/webm":
+        return "webm", nil
 	case "audio/mpeg":
 		return "mp3", nil
 	case "audio/wav", "audio/x-wav":
@@ -187,6 +189,8 @@ func getExtensionFromMIME(m string) (string, error) {
 
 func getMIMEFromExtension(ext string) (string, error) {
 	switch ext {
+	case "webm":
+        return "audio/webm", nil
 	case "mp3":
 		return "audio/mpeg", nil
 	case "wav":
