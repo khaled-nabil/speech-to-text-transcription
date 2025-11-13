@@ -18,6 +18,7 @@ import (
 	"transcription-service/internal/router"
 	"transcription-service/pkg/faster-whisper"
 	"transcription-service/pkg/minio"
+	"transcription-service/pkg/postgres"
 	"transcription-service/usecase/transcription"
 )
 
@@ -34,14 +35,18 @@ func InitializeServer() (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
+	transcriptionRepository, err := postgres.New(configConfig)
+	if err != nil {
+		return nil, err
+	}
 	client, err := faster_whisper.New(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	useCase := transcription.New(storage, client, configConfig)
+	useCase := transcription.New(storage, transcriptionRepository, client, configConfig)
 	transcribercontrollerController := transcribercontroller.New(useCase)
 	routerRouter := router.New(engine, controller, transcribercontrollerController)
-	server := New(engine, routerRouter)
+	server := New(engine, routerRouter, transcriptionRepository)
 	return server, nil
 }
 
@@ -54,5 +59,5 @@ func NewGinEngine() *gin.Engine {
 }
 
 var ProviderSet = wire.NewSet(wire.Bind(new(persistance.Storage), new(*minio.Storage)), wire.Bind(new(transcriber.Transcriber), new(*faster_whisper.Client)), NewGinEngine,
-	New, transcription.New, healthcontroller.New, transcribercontroller.New, router.New, minio.New, faster_whisper.New, config.New,
+	New, transcription.New, healthcontroller.New, transcribercontroller.New, router.New, minio.New, faster_whisper.New, postgres.New, config.New,
 )

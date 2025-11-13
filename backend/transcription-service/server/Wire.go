@@ -13,6 +13,7 @@ import (
 	"transcription-service/internal/router"
 	"transcription-service/pkg/faster-whisper"
 	"transcription-service/pkg/minio"
+	"transcription-service/pkg/postgres"
 	"transcription-service/usecase/transcription"
 
 	"github.com/gin-gonic/gin"
@@ -36,6 +37,7 @@ var ProviderSet = wire.NewSet(
 	router.New,
 	minio.New,
 	faster_whisper.New,
+	postgres.New,
 	config.New)
 
 func InitializeServer() (*Server, error) {

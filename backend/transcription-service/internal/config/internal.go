@@ -27,11 +27,21 @@ type (
 		Model    string
 	}
 
+	PostgresConfig struct {
+		Host           string
+		Port           int
+		User           string
+		Password       string
+		Database       string
+		MigrationsPath string
+	}
+
 	Config struct {
 		Env           string
 		MinIO         MinIOConfig
 		Storage       StorageConfig
 		FasterWhisper FasterWhisper
+		Postgres      PostgresConfig
 	}
 )
 
@@ -53,6 +63,14 @@ func New() (*Config, error) {
 			Endpoint: getEnvFatal("FASTER_WHISPER_ENDPOINT"),
 			Port:     getEnvFatal("FASTER_WHISPER_PORT"),
 			Model:    getEnvFatal("FASTER_WHIPSER_MODEL"),
+		},
+		Postgres: PostgresConfig{
+			Host:           getEnvDefault("POSTGRES_HOST", "localhost"),
+			Port:           getEnvIntegerFatal("POSTGRES_PORT"),
+			User:           getEnvFatal("POSTGRES_USER"),
+			Password:       getEnvFatal("POSTGRES_PASSWORD"),
+			Database:       getEnvFatal("POSTGRES_DB"),
+			MigrationsPath: getEnvDefault("POSTGRES_MIGRATIONS_PATH", "./migrations"),
 		},
 	}
 	if err := c.Validate(); err != nil {
