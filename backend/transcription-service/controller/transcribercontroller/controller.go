@@ -34,6 +34,7 @@ func (ctr *Controller) UploadAudio(c *gin.Context) {
 	c.JSON(http.StatusCreated, TranscriptionResponseDTO{
 		Text:     t,
 		FileName: f,
+		Status:   SUCCESS,
 	})
 }
 
