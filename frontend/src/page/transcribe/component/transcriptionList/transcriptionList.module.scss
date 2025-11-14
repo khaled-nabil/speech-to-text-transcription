@@ -1,0 +1,6 @@
+@use '../../../../presentation/theme/spacings.module' as spacings;
+
+.list {
+  flex-direction: column;
+  gap: spacings.$spacing-sm;
+}

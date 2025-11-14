@@ -65,14 +65,14 @@ func (c *Client) Transcribe(req transcriber.TranscriptionRequest) (*transcriber.
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
 
-	err = resp.Body.Close()
-	if err != nil {
-		log.Printf("Error closing response body: %v", err)
-	}
-
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	err = resp.Body.Close()
+	if err != nil {
+		log.Printf("Error closing response body: %v", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {

@@ -1,1 +1,1 @@
-export {default} from "./transcribe"
+export { default } from './transcribe'

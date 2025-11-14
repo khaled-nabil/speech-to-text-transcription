@@ -13,6 +13,7 @@ import (
 	"transcription-service/domain/persistance"
 	"transcription-service/internal/router"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,11 +28,24 @@ func New(e *gin.Engine, r *router.Router, repo persistance.TranscriptionReposito
 }
 
 func (s *Server) Start() error {
-
 	s.engine.Use(gin.Logger())
 	s.engine.Use(gin.Recovery())
 
-	err := s.engine.SetTrustedProxies([]string{"127.0.0.1/32"})
+	frontendURL, exist := os.LookupEnv("FRONTEND_URL")
+	if !exist {
+		frontendURL = "http://localhost:8080"
+	}
+
+	s.engine.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{frontendURL},
+		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "X-User-ID"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
+	err := s.engine.SetTrustedProxies([]string{"127.0.0.1", "::1"})
 	if err != nil {
 		return fmt.Errorf("failed to set trusted proxies: %w", err)
 	}

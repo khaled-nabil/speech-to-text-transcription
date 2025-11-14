@@ -5,11 +5,6 @@ import "time"
 type (
 	STATUS string
 
-	TranscriptionResponseDTO struct {
-		ID     string `json:"id"`
-		Status STATUS `json:"status"`
-	}
-
 	TranscriptionItemDTO struct {
 		ID             string    `json:"id"`
 		UploadDate     time.Time `json:"uploadDate"`

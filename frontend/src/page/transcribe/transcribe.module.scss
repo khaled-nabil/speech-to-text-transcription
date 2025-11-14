@@ -1,0 +1,20 @@
+@use '../../presentation/theme/spacings.module' as spacings;
+
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  flex: 1;
+  padding-bottom: spacings.$spacing-lg;
+  background-image: url('../../assets/background.jpg');
+  background-size: cover;
+
+  .animation {
+    margin: spacings.$spacing-md auto 0;
+    max-width: 300px;
+  }
+
+  .controls {
+    margin: 0 auto;
+  }
+}
