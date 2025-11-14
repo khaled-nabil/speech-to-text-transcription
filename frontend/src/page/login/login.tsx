@@ -1,9 +1,9 @@
 import { Box, TextField, Button, Paper } from '@mui/material'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
-import { v5 as uuidv5 } from 'uuid';
-import { useAppDispatch } from '../../store/hooks.ts'
-import { setUser } from '../../store/userSlice.ts'
+import { v5 as uuidv5 } from 'uuid'
+import { useAppDispatch } from 'store/hooks'
+import { setUser } from 'page/login/slice/userSlice'
 
 import style from './login.module.scss'
 
