@@ -6,6 +6,7 @@ import { useAppDispatch } from 'store/hooks'
 import { setUser } from 'page/login/slice/userSlice'
 
 import style from './login.module.scss'
+import { saveUserToCookie } from 'utils/cookies.ts'
 
 interface LoginFormData {
 	username: string
@@ -20,7 +21,9 @@ const Login = () => {
 	const onSubmit = (data: LoginFormData) => {
 		// TODO: ID should come from backend when we add authentication, for now it's a dummy'
 		const userId = uuidv5(data.username, uuidv5.URL)
-		dispatch(setUser({ email: data.username, userId }))
+		const user = { email: data.username, userId }
+
+		dispatch(setUser(user))
 		navigate('/transcribe')
 	}
 

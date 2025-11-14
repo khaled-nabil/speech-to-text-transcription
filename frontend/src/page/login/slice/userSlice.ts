@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import { removeUserCookie, saveUserToCookie } from 'utils/cookies.ts'
 
 interface UserState {
 	email: string | null
@@ -20,10 +21,12 @@ const userSlice = createSlice({
 		) => {
 			state.email = action.payload.email
 			state.userId = action.payload.userId
+			saveUserToCookie(action.payload)
 		},
 		clearUser: (state) => {
 			state.email = null
 			state.userId = null
+			removeUserCookie()
 		},
 	},
 })
