@@ -1,3 +1,5 @@
+/// <reference types="vitest/globals" />
+
 declare module '*.scss' {
 	interface ScssColors {
 		orange50: string

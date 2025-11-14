@@ -1,4 +1,4 @@
-name: Lint and Run tests
+name: Backend - Lint and Run tests
 
 on:
   pull_request:
