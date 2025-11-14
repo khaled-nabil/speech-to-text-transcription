@@ -10,6 +10,11 @@
   background-size: cover;
 
   .animation {
-    margin-top: spacings.$spacing-md;
+    margin: spacings.$spacing-md auto 0;
+    max-width: 300px;
+  }
+
+  .controls {
+    margin: 0 auto;
   }
 }

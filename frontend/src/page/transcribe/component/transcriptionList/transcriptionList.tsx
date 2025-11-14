@@ -1,6 +1,8 @@
 import { ListItem } from '@mui/material'
 import { useAppSelector } from 'store/hooks'
-import TranscriptionItem from 'page/transcribe/component/transcriptionItem/transcriptionItem'
+import TranscriptionItem from '../transcriptionItem'
+
+import style from './transcriptionList.module.scss'
 
 const TranscriptionList = () => {
 	const transcriptions = useAppSelector(
@@ -8,7 +10,7 @@ const TranscriptionList = () => {
 	)
 
 	return (
-		<ListItem>
+		<ListItem className={style.list}>
 			{transcriptions.map((transcription) => (
 				<TranscriptionItem {...transcription} />
 			))}

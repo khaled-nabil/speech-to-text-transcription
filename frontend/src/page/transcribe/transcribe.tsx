@@ -3,15 +3,16 @@ import { useRef } from 'react'
 import { Box } from '@mui/material'
 import Lottie, { type LottieRefCurrentProps } from 'lottie-react'
 import { useMutation } from '@tanstack/react-query'
+import { useAppDispatch, useAppSelector } from 'store/hooks'
 import MicrophoneButton from '../../component/microphoneButton'
 import audiWaveLottie from './assets/wave.json'
-import { useAppDispatch, useAppSelector } from 'store/hooks'
 import { addTranscription } from 'page/transcribe/slice/transcriptionSlice'
-import TranscriptionList from 'page/transcribe/component/transcriptionList/transcriptionList'
+import TranscriptionList from './component/transcriptionList'
+import { fetchAPI } from 'utils/api'
+import type { TranscriptionResponse } from 'types/transcription'
+import { createNewTranscriptionFromBlob } from './slice/domainTransformer'
+
 import style from './transcribe.module.scss'
-import { fetchAPI } from 'utils/api.ts'
-import type { TranscriptionResponse } from 'types/transcription.ts'
-import { createNewTranscriptionFromBlob } from 'page/transcribe/slice/domainTransformer.ts'
 
 const Transcribe = () => {
 	const dispatch = useAppDispatch()
@@ -67,10 +68,12 @@ const Transcribe = () => {
 				loop
 				className={style.animation}
 			/>
-			<MicrophoneButton
-				onRecordingComplete={handleRecordingCompleted}
-				onRecording={handleLottiState}
-			/>
+			<Box className={style.controls}>
+				<MicrophoneButton
+					onRecordingComplete={handleRecordingCompleted}
+					onRecording={handleLottiState}
+				/>
+			</Box>
 		</Box>
 	)
 }

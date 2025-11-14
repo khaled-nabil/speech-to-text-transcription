@@ -2,8 +2,10 @@ import { IconButton } from '@mui/material'
 import MicIcon from '@mui/icons-material/Mic'
 import StopIcon from '@mui/icons-material/Stop'
 import PauseIcon from '@mui/icons-material/Pause'
-import style from './microphoneButton.module.scss'
+import classnames from 'classnames'
 import { useAudioRecorder } from './useAudioRecorder'
+
+import style from './microphoneButton.module.scss'
 
 interface MicrophoneButtonProps {
 	onRecordingComplete: (blob: Blob) => void
@@ -44,8 +46,12 @@ const MicrophoneButton = ({
 					<MicIcon sx={{ fontSize: 40 }} />
 				)}
 			</IconButton>
+
 			{state !== 'INACTIVE' && (
-				<IconButton onClick={handleStop} className={style.button}>
+				<IconButton
+					onClick={handleStop}
+					className={classnames(style.button, style.stop)}
+				>
 					<StopIcon sx={{ fontSize: 40 }} />
 				</IconButton>
 			)}

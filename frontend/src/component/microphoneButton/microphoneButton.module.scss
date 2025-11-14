@@ -1,9 +1,18 @@
 @use '../../presentation/theme/colors.module' as colors;
+@use '../../presentation/theme/spacings.module' as spacings;
 
-.button {
-  width: 80px;
-  height: 80px;
-  background-color: colors.$orange-600 !important;
-  margin: 0 auto !important;
-  box-shadow: 0 0 10px 10px rgba(255, 255, 255, 0.3);
+.container {
+  display: flex;
+  gap: spacings.$spacing-sm;
+  .button {
+    width: 80px;
+    height: 80px;
+    background-color: colors.$orange-600 !important;
+    margin: 0 auto !important;
+    box-shadow: 0 0 10px 10px rgba(255, 255, 255, 0.3);
+
+    &.stop {
+      background-color: colors.$danger-red !important;
+    }
+  }
 }
