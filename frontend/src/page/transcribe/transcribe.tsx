@@ -1,36 +1,41 @@
-import { Box } from '@mui/material'
+import { useRef } from 'react'
+import { Box, CardMedia } from '@mui/material'
 import Lottie, { type LottieRefCurrentProps } from 'lottie-react'
 import MicrophoneButton from '../../component/microphoneButton'
 import audiWaveLottie from './assets/wave.json'
+
 import style from './transcribe.module.scss'
-import { useEffect, useRef, useState } from 'react'
 
 const Transcribe = () => {
-	const [shouldPlay, setShouldPlay] = useState(false)
 	const lottieRef = useRef<LottieRefCurrentProps | null>(null)
-	useEffect(() => {
-		const animation = lottieRef.current
+	const audioPlayerRef = useRef<HTMLAudioElement | null>(null)
 
-		if (animation) {
-			if (shouldPlay) {
-				// 2. Play the animation
-				animation.play()
+	const handleLottiState = (active: boolean) => {
+		if (lottieRef.current) {
+			if (active) {
+				lottieRef.current.play()
 			} else {
-				// 3. Pause and jump to the first frame
-				animation.pause()
-				// Sets the animation progress to a specific frame number (e.g., 0 for frame 1)
-				animation.goToAndStop(0, true)
+				lottieRef.current.pause()
+				lottieRef.current.goToAndStop(0, true)
 			}
 		}
-	}, [shouldPlay]) // Rerun this effect whenever the 'shouldPlay' prop changes
-	const handleMicrophoneClick = () => {
-		// TODO: Implement microphone functionality
-		setShouldPlay(!shouldPlay)
-		console.log('Microphone clicked')
+	}
+
+	const handleRecordingCompleted = (blob: Blob) => {
+		if (!audioPlayerRef.current) return
+
+		audioPlayerRef.current.src = URL.createObjectURL(blob)
+		audioPlayerRef.current.load()
 	}
 
 	return (
 		<Box className={style.container}>
+			<CardMedia
+				ref={audioPlayerRef}
+				component="audio"
+				controls
+				className={style.audioPlayer}
+			/>
 			<Lottie
 				lottieRef={lottieRef}
 				animationData={audiWaveLottie}
@@ -38,7 +43,10 @@ const Transcribe = () => {
 				loop={true}
 				className={style.animation}
 			/>
-			<MicrophoneButton onClick={handleMicrophoneClick} />
+			<MicrophoneButton
+				onRecordingComplete={handleRecordingCompleted}
+				onRecording={handleLottiState}
+			/>
 		</Box>
 	)
 }
