@@ -6,7 +6,6 @@ import { useAppDispatch } from 'store/hooks'
 import { setUser } from 'page/login/slice/userSlice'
 
 import style from './login.module.scss'
-import { saveUserToCookie } from 'utils/cookies.ts'
 
 interface LoginFormData {
 	username: string

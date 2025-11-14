@@ -16,6 +16,7 @@
     flex: 1;
 
     .main {
+      position: relative;
       display: flex;
       box-sizing: border-box;
       background-color: colors.$space-grey-100;
@@ -23,6 +24,7 @@
       max-height: 100%;
       overflow: auto;
       border-radius: 1rem;
+      flex-direction: column;
     }
   }
 }
