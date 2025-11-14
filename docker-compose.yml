@@ -1,4 +1,17 @@
 services:
+  frontend:
+    build: ./frontend
+    env_file:
+      - frontend/.env
+    ports:
+      - "8080:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
   transcription_service:
     build: ./backend/transcription-service
     env_file:
@@ -36,8 +49,8 @@ services:
       - backend/transcription-service/.env
     container_name: minio
     ports:
-      - "9000:9000"  # MinIO API/Client port
-      - "9001:9001"  # MinIO Console/Web UI port
+      - "9000:9000"
+      - "9001:9001"
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
