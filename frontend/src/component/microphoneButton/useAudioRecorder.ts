@@ -1,4 +1,3 @@
-// frontend/src/component/microphoneButton/useAudioRecorder.ts
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { createAudioRecorder } from './utils'
 import type { AudioRecorder, RecordingState } from './types'
