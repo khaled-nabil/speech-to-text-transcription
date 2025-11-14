@@ -25,15 +25,17 @@ func (ctr *Controller) UploadAudio(c *gin.Context) {
 		return
 	}
 
-	id, err := ctr.useCase.UploadAudio(userID, fileHeader)
+	t, err := ctr.useCase.UploadAudio(userID, fileHeader)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusAccepted, TranscriptionResponseDTO{
-		ID:     id,
-		Status: PENDING,
+	c.JSON(http.StatusAccepted, TranscriptionItemDTO{
+		ID:             t.ID,
+		UploadDate:     t.UploadDate,
+		TranscriptText: t.TranscriptText,
+		Status:         STATUS(t.Status),
 	})
 }
 

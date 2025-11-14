@@ -33,18 +33,18 @@ func New(storage persistance.Storage, repo persistance.TranscriptionRepository, 
 	}
 }
 
-func (u *useCase) UploadAudio(userID string, fileHeader *multipart.FileHeader) (string, error) {
+func (u *useCase) UploadAudio(userID string, fileHeader *multipart.FileHeader) (*transcriptionentity.Transcription, error) {
 	if userID == "" {
-		return "", fmt.Errorf("missing userID")
+		return nil, fmt.Errorf("missing userID")
 	}
 	if fileHeader == nil {
-		return "", fmt.Errorf("missing file")
+		return nil, fmt.Errorf("missing file")
 	}
 
 	maxFileSize := maxFileSizeFromMBytes(u.config.MaxFileSize)
 
 	if fileHeader.Size > maxFileSize {
-		return "", fmt.Errorf("file too large (>%dMB)", maxFileSize)
+		return nil, fmt.Errorf("file too large (>%dMB)", maxFileSize)
 	}
 
 	var fileExtension string
@@ -57,12 +57,12 @@ func (u *useCase) UploadAudio(userID string, fileHeader *multipart.FileHeader) (
 	}
 
 	if !(slices.Contains(u.config.AllowedExt, fileExtension)) {
-		return "", fmt.Errorf("file type %s not allowed", fileExtension)
+		return nil, fmt.Errorf("file type %s not allowed", fileExtension)
 	}
 
 	f, err := fileHeader.Open()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer func(f multipart.File) {
 		err = f.Close()
@@ -73,17 +73,17 @@ func (u *useCase) UploadAudio(userID string, fileHeader *multipart.FileHeader) (
 
 	data, err := io.ReadAll(io.LimitReader(f, maxFileSize+1))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if int64(len(data)) > maxFileSize {
-		return "", fmt.Errorf("file too large (>%dMB)", maxFileSize)
+		return nil, fmt.Errorf("file too large (>%dMB)", maxFileSize)
 	}
 
 	fileName := fmt.Sprintf("%s.%s", uuid.New().String(), fileExtension)
 	objectPath := fmt.Sprintf("%s/%s", userID, fileName)
 
 	if err = u.storage.StoreFile(objectPath, data); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	transcriptionEntity := &transcriptionentity.Transcription{
@@ -95,12 +95,12 @@ func (u *useCase) UploadAudio(userID string, fileHeader *multipart.FileHeader) (
 		Status:         transcriptionentity.StatusPending,
 	}
 	if err = u.repo.Save(transcriptionEntity); err != nil {
-		return "", fmt.Errorf("failed to save transcription: %w", err)
+		return nil, fmt.Errorf("failed to save transcription: %w", err)
 	}
 
 	go u.processTranscription(transcriptionEntity.ID, fileName, data)
 
-	return transcriptionEntity.ID, nil
+	return transcriptionEntity, nil
 }
 
 func (u *useCase) processTranscription(id string, fileName string, data []byte) {
@@ -171,7 +171,7 @@ func maxFileSizeFromMBytes(mbytes int) int64 {
 func getExtensionFromMIME(m string) (string, error) {
 	switch m {
 	case "audio/webm":
-        return "webm", nil
+		return "webm", nil
 	case "audio/mpeg":
 		return "mp3", nil
 	case "audio/wav", "audio/x-wav":
@@ -190,7 +190,7 @@ func getExtensionFromMIME(m string) (string, error) {
 func getMIMEFromExtension(ext string) (string, error) {
 	switch ext {
 	case "webm":
-        return "audio/webm", nil
+		return "audio/webm", nil
 	case "mp3":
 		return "audio/mpeg", nil
 	case "wav":
