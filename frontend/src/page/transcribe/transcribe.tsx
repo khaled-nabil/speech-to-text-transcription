@@ -3,7 +3,7 @@ import { useRef } from 'react'
 import { Box } from '@mui/material'
 import Lottie, { type LottieRefCurrentProps } from 'lottie-react'
 import { useMutation } from '@tanstack/react-query'
-import { useAppDispatch, useAppSelector } from 'store/hooks'
+import { useAppDispatch } from 'store/hooks'
 import MicrophoneButton from '../../component/microphoneButton'
 import audiWaveLottie from './assets/wave.json'
 import { addTranscription } from 'page/transcribe/slice/transcriptionSlice'
@@ -16,7 +16,6 @@ import style from './transcribe.module.scss'
 
 const Transcribe = () => {
 	const dispatch = useAppDispatch()
-	const userID = useAppSelector(({ user }) => user.userId)
 	const lottieRef = useRef<LottieRefCurrentProps | null>(null)
 
 	const transcribeMutation = useMutation<TranscriptionResponse, Error, Blob>({
@@ -28,9 +27,6 @@ const Transcribe = () => {
 				'/api/v1/transcriber',
 				{
 					method: 'POST',
-					headers: {
-						'X-User-ID': userID ?? '231',
-					},
 					body: formData,
 				}
 			)

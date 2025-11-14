@@ -3,6 +3,7 @@ import Layout from 'component/layout/layout'
 import Home from 'page/home'
 import Login from 'page/login'
 import Transcribe from 'page/transcribe'
+import Transcription from 'page/transcription'
 import ProtectedRoute from './ProtectedRoute'
 
 const Router = () => (
@@ -12,7 +13,7 @@ const Router = () => (
 				<Route path="/" element={<Home />} />
 				<Route path="/login" element={<Login />} />
 				<Route path="/transcribe" element={<ProtectedRoute><Transcribe /></ProtectedRoute>} />
-				<Route path="/history" element={<ProtectedRoute><></></ProtectedRoute>} />
+				<Route path="/history" element={<ProtectedRoute><Transcription /></ProtectedRoute>} />
 			</Route>
 		</Routes>
 	</BrowserRouter>
