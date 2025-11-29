@@ -1,18 +1,17 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
-import eslint from 'vite-plugin-eslint'
 import path from 'path'
 
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), '')
 	return {
-		plugins: [react(), eslint()],
+		plugins: [react()],
 		define: {
 			__APP_ENV__: JSON.stringify(env.APP_ENV),
 			__BACKEND_URL__: JSON.stringify(env.BACKEND_URL),
 		},
 		server: {
-			port: env.APP_PORT ? Number(env.APP_PORT) : 5173,
+			port: env.PORT ? Number(env.PORT) : 8080,
 		},
 		resolve: {
 			alias: {
