@@ -65,8 +65,8 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
 					sx={{ marginTop: '8px' }}
 				/>
 			)}
-			{status === 'PENDING' ||
-				(isLoading && (
+			{(status === 'PENDING' ||
+				isLoading) && (
 					<Box
 						sx={{
 							display: 'flex',
@@ -76,7 +76,7 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
 					>
 						<CircularProgress />
 					</Box>
-				))}
+				)}
 			{status === 'ERROR' ||
 				(isError && (
 					<Alert severity="error" sx={{ marginTop: '8px' }}>
