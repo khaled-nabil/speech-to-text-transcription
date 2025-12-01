@@ -1,17 +1,12 @@
 import { ListItem, ListItemText, Box, Typography } from '@mui/material'
-import type {
-	TranscriptionReady,
-	TranscriptionResponse,
-} from 'types/transcription'
+import type { Transcription } from 'types/transcription'
 
 interface TranscriptionRowProps {
-	transcription: TranscriptionResponse
+	transcription: Transcription
 }
 
 const TranscriptionRow = ({ transcription }: TranscriptionRowProps) => {
-	const formattedDate = new Date(
-		(transcription as TranscriptionReady).uploadDate
-	).toLocaleString()
+	const formattedDate = new Date(transcription.uploadDate).toLocaleString()
 
 	return (
 		<ListItem>
@@ -19,9 +14,7 @@ const TranscriptionRow = ({ transcription }: TranscriptionRowProps) => {
 				<Typography variant="caption" color="text.primary">
 					{formattedDate}
 				</Typography>
-				<ListItemText
-					primary={transcription.transcriptText}
-				/>
+				<ListItemText primary={transcription.transcriptText} />
 			</Box>
 		</ListItem>
 	)

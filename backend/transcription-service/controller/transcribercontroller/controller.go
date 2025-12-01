@@ -31,12 +31,13 @@ func (ctr *Controller) UploadAudio(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusAccepted, TranscriptionItemDTO{
-		ID:             t.ID,
-		UploadDate:     t.UploadDate,
-		TranscriptText: t.TranscriptText,
-		Status:         STATUS(t.Status),
-	})
+	signedURL, err := ctr.useCase.GetPresignedURL(userID, t.FileName)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusAccepted, TranscriptionToDTO(t, signedURL))
 }
 
 func (ctr *Controller) GetAudio(c *gin.Context) {
@@ -80,6 +81,8 @@ func (ctr *Controller) GetAllUserTranscriptions(c *gin.Context) {
 
 func (ctr *Controller) GetTranscriptionByID(c *gin.Context) {
 	id := c.Param("id")
+	userID := c.GetHeader("X-User-ID")
+
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "missing transcription ID"})
 		return
@@ -91,10 +94,11 @@ func (ctr *Controller) GetTranscriptionByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, TranscriptionItemDTO{
-		ID:             t.ID,
-		UploadDate:     t.UploadDate,
-		TranscriptText: t.TranscriptText,
-		Status:         STATUS(t.Status),
-	})
+	signedURL, err := ctr.useCase.GetPresignedURL(userID, t.FileName)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusAccepted, TranscriptionToDTO(t, signedURL))
 }

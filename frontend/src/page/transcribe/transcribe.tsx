@@ -1,4 +1,3 @@
-// frontend/src/page/transcribe/transcribe.tsx
 import { useRef } from 'react'
 import { Box } from '@mui/material'
 import Lottie, { type LottieRefCurrentProps } from 'lottie-react'
@@ -9,8 +8,7 @@ import audiWaveLottie from './assets/wave.json'
 import { addTranscription } from 'page/transcribe/slice/transcriptionSlice'
 import TranscriptionList from './component/transcriptionList'
 import { fetchAPI } from 'utils/api'
-import type { TranscriptionResponse } from 'types/transcription'
-import { createNewTranscriptionFromBlob } from './slice/domainTransformer'
+import type { Transcription } from 'types/transcription'
 
 import style from './transcribe.module.scss'
 
@@ -18,26 +16,17 @@ const Transcribe = () => {
 	const dispatch = useAppDispatch()
 	const lottieRef = useRef<LottieRefCurrentProps | null>(null)
 
-	const transcribeMutation = useMutation<TranscriptionResponse, Error, Blob>({
+	const transcribeMutation = useMutation<Transcription, Error, Blob>({
 		mutationFn: async (blob) => {
 			const formData = new FormData()
 			formData.append('file', blob, 'recording.webm')
 
-			return await fetchAPI<TranscriptionResponse>(
-				'/api/v1/transcriber',
-				{
-					method: 'POST',
-					body: formData,
-				}
-			)
+			return await fetchAPI<Transcription>('/api/v1/transcriber', {
+				method: 'POST',
+				body: formData,
+			})
 		},
-		onSuccess: (data, recordedBlob) => {
-			const transcription = createNewTranscriptionFromBlob(
-				data,
-				recordedBlob
-			)
-			dispatch(addTranscription(transcription))
-		},
+		onSuccess: (data) => dispatch(addTranscription(data)),
 	})
 
 	const handleLottiState = (active: boolean) => {

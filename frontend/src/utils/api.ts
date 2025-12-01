@@ -3,7 +3,7 @@ import { getUserFromCookie } from 'utils/cookies.ts'
 
 declare const __BACKEND_URL__: string
 
-const API_BASE_URL = __BACKEND_URL__
+export const API_BASE_URL = __BACKEND_URL__
 
 export const fetchAPI = async <T>(
 	endpoint: string,

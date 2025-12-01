@@ -148,6 +148,15 @@ func (u *useCase) GetAudio(userID string, fileName string) ([]byte, string, erro
 	return data, mime, nil
 }
 
+func (u *useCase) GetPresignedURL(userID string, fileName string) (string, error) {
+	if userID == "" || fileName == "" {
+		return "", fmt.Errorf("missing identifiers")
+	}
+
+	objectPath := fmt.Sprintf("%s/%s", userID, fileName)
+	return u.storage.GetPresignedURL(objectPath)
+}
+
 func (u *useCase) GetAllUserTranscriptions(userID string) ([]*transcriptionentity.Transcription, error) {
 	if userID == "" {
 		return nil, fmt.Errorf("missing userID")

@@ -4,15 +4,18 @@ services:
     env_file:
       - frontend/.env
     ports:
-      - "8080:3000"
+      - "8080:8080"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
-      interval: 30s
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
       timeout: 10s
       retries: 3
+      start_period: 10s
+    depends_on:
+      backend_transcription_service:
+        condition: service_healthy
     restart: unless-stopped
 
-  transcription_service:
+  backend_transcription_service:
     build: ./backend/transcription-service
     env_file:
       - backend/transcription-service/.env
@@ -20,16 +23,16 @@ services:
       - "3000:3000"
     depends_on:
       db:
-        condition: service_started
+        condition: service_healthy
       faster-whisper:
-        condition: service_started
+        condition: service_healthy
       minio:
-        condition: service_started
+        condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:3000/api/v1/health" ]
       timeout: 5s
-      interval: 10m
       retries: 3
+      start_period: 10s
 
   db:
     image: postgres:17.6
@@ -41,7 +44,9 @@ services:
       - "5432:5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 1s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   minio:
     image: minio/minio:RELEASE.2025-09-07T16-13-09Z-cpuv1
@@ -55,10 +60,10 @@ services:
     volumes:
       - minio_data:/data
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
-      interval: 10m
-      timeout: 20s
-      retries: 3
+      test: ["CMD", "mc", "ready", "local"]
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     restart: always
 
   faster-whisper:
@@ -73,7 +78,7 @@ services:
         BASE_IMAGE: ubuntu:24.04
     restart: unless-stopped
     ports:
-      - "4000:8000"
+      - "8000:8000"
     develop:
       watch:
         - action: rebuild
@@ -84,8 +89,7 @@ services:
     env_file:
       - backend/transcription-service/.env
     healthcheck:
-      test: ["CMD", "curl", "--fail", "http://0.0.0.0:4000/health"]
-      interval: 30s
+      test: ["CMD", "curl", "--fail", "http://0.0.0.0:8000/health"]
       timeout: 10s
       retries: 3
       start_period: 5s
