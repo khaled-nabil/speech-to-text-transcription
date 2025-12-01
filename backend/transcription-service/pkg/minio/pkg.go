@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"log"
+	"time"
 	"transcription-service/internal/config"
 
 	"github.com/minio/minio-go/v7"
@@ -76,6 +77,18 @@ func (s *Storage) GetFile(path string) ([]byte, error) {
 	}
 
 	return data, nil
+}
+
+func (s *Storage) GetPresignedURL(path string) (string, error) {
+	// Set an expiry time for the URL, e.g. 15 minutes.
+	expiry := 15 * time.Minute
+
+	presignedURL, err := s.client.PresignedGetObject(context.Background(), s.conf.BucketName, path, expiry, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return presignedURL.String(), nil
 }
 
 func (s *Storage) DeleteFile(path string) error {

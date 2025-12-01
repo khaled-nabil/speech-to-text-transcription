@@ -8,6 +8,7 @@ type (
 	Storage interface {
 		StoreFile(path string, data []byte) error
 		GetFile(path string) ([]byte, error)
+		GetPresignedURL(path string) (string, error)
 		DeleteFile(path string) error
 	}
 
