@@ -1,15 +1,13 @@
 import { Box, Alert, List, Backdrop, CircularProgress } from '@mui/material'
 import TranscriptionRow from 'component/transcriptionRow'
-import type { TranscriptionResponse } from 'types/transcription'
+import type { Transcription } from 'types/transcription'
 import { useQuery } from '@tanstack/react-query'
 import { fetchAPI } from 'utils/api'
 
 import style from 'page/transcribe/transcribe.module.scss'
 
 const Transcription = () => {
-	const { data, isLoading, isError, error } = useQuery<
-		TranscriptionResponse[]
-	>({
+	const { data, isLoading, isError, error } = useQuery<Transcription[]>({
 		queryKey: ['transcriptionList'],
 		queryFn: () => fetchAPI(`/api/v1/transcriptions`),
 	})

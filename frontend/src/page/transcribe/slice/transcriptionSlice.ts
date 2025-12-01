@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import type { Transcription, TranscriptionResponse } from 'types/transcription'
+import type { Transcription } from 'types/transcription'
 
 interface TranscriptionState {
 	items: Transcription[]
@@ -16,27 +16,18 @@ const transcriptionSlice = createSlice({
 		addTranscription: (state, action: PayloadAction<Transcription>) => {
 			state.items.push(action.payload)
 		},
-		updateTranscription: (
-			state,
-			action: PayloadAction<TranscriptionResponse>
-		) => {
+		updateTranscription: (state, action: PayloadAction<Transcription>) => {
 			const index = state.items.findIndex(
 				(t) => t.id === action.payload.id
 			)
 			if (index !== -1) {
-				const { audioURL } = state.items[index]
-
-				state.items[index] = { ...action.payload, audioURL }
+				state.items[index] = action.payload
 			}
-		},
-		clearTranscriptions: (state) => {
-			state.items.forEach((t) => URL.revokeObjectURL(t.audioURL))
-
-			state.items = []
 		},
 	},
 })
 
-export const { addTranscription, updateTranscription, clearTranscriptions } =
+export const { addTranscription, updateTranscription } =
 	transcriptionSlice.actions
+
 export default transcriptionSlice.reducer

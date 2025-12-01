@@ -1,13 +1,13 @@
 import {
+	Alert,
 	Box,
 	CardMedia,
-	ListItemText,
 	CircularProgress,
-	Alert,
+	ListItemText,
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { type FC, useEffect, useRef } from 'react'
-import type { Transcription, TranscriptionResponse } from 'types/transcription'
+import type { Transcription } from 'types/transcription'
 import { useAppDispatch } from 'store/hooks'
 import { updateTranscription } from 'page/transcribe/slice/transcriptionSlice'
 import { fetchAPI } from 'utils/api'
@@ -18,7 +18,7 @@ type TranscriptionItemProps = Transcription
 
 const TranscriptionItem: FC<TranscriptionItemProps> = ({
 	id,
-	audioURL,
+	mediaUrl,
 	transcriptText,
 	status,
 }) => {
@@ -29,24 +29,21 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
 	useEffect(() => {
 		if (!audioPlayerRef.current) return
 
-		audioPlayerRef.current.src = audioURL
+		audioPlayerRef.current.src = mediaUrl
 		audioPlayerRef.current.load()
-	}, [audioURL])
+	}, [mediaUrl])
 
-	const { data, isLoading, isError, error } = useQuery<TranscriptionResponse>(
-		{
-			queryKey: ['transcriptionID', id],
-			queryFn: () =>
-				fetchAPI(`/api/v1/transcriptions/${id}`),
-			enabled: status === 'PENDING',
-			refetchInterval: 2500,
-			refetchIntervalInBackground: true,
-			retry: 15,
-		}
-	)
+	const { data, isLoading, isError, error } = useQuery<Transcription>({
+		queryKey: ['transcriptionID', id],
+		queryFn: () => fetchAPI(`/api/v1/transcriptions/${id}`),
+		enabled: status === 'PENDING',
+		refetchInterval: 2500,
+		refetchIntervalInBackground: true,
+		retry: 15,
+	})
 
 	useEffect(() => {
-		if (data) {
+		if (data && data.status !== 'PENDING') {
 			dispatch(updateTranscription(data))
 		}
 	}, [data, dispatch, id])
@@ -65,18 +62,17 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
 					sx={{ marginTop: '8px' }}
 				/>
 			)}
-			{(status === 'PENDING' ||
-				isLoading) && (
-					<Box
-						sx={{
-							display: 'flex',
-							justifyContent: 'center',
-							marginTop: '16px',
-						}}
-					>
-						<CircularProgress />
-					</Box>
-				)}
+			{(status === 'PENDING' || isLoading) && (
+				<Box
+					sx={{
+						display: 'flex',
+						justifyContent: 'center',
+						marginTop: '16px',
+					}}
+				>
+					<CircularProgress />
+				</Box>
+			)}
 			{status === 'ERROR' ||
 				(isError && (
 					<Alert severity="error" sx={{ marginTop: '8px' }}>

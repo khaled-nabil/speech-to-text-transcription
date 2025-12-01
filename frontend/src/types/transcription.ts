@@ -1,16 +1,9 @@
 export type TranscriptionStatus = 'PENDING' | 'SUCCESS' | 'ERROR'
 
-export interface TranscriptionResponse {
+export interface Transcription {
 	id: string
 	uploadDate: string
+	mediaUrl: string
 	transcriptText?: string
 	status: TranscriptionStatus
-}
-
-export interface Transcription extends TranscriptionResponse {
-	audioURL: string
-}
-
-export interface TranscriptionReady extends Required<Transcription> {
-	status: 'SUCCESS'
 }

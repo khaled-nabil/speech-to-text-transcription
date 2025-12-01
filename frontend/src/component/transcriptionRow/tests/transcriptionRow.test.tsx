@@ -1,11 +1,12 @@
 import { render, screen } from '@testing-library/react'
 import TranscriptionRow from '../transcriptionRow'
-import type { TranscriptionResponse } from 'types/transcription'
+import type { Transcription } from 'types/transcription'
 import { v5 as uuidv5 } from 'uuid'
 
-const transactionMock: TranscriptionResponse = {
+const transactionMock: Transcription = {
 	id: uuidv5('test-file', uuidv5.DNS),
 	uploadDate: '2024-06-01T12:00:00Z',
+	mediaUrl: 'https://example.com/test.mp3',
 	transcriptText: 'This is a test transcription text.',
 	status: 'SUCCESS',
 }
